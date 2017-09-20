@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Andre Fioraldi</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+        <script type="text/javascript" charset="utf-8">
+            'use strict';
+
+            function httpGet(url)
+            {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.open("GET", url, false);
+                xmlHttp.send(null);
+                return xmlHttp.responseText;
+            }
+
+            var dir = "/";
+            var shell_history = [];
+            var shell_history_idx = -1;
+
+            function processCmd(cmd) {
+                var args = cmd.split(' ').filter(function(i){return i})
+                console.log(args);
+                if(args[0] == "help")
+                    return `<pre class="leet_text" style="font-size:20px;">Welcome to my personal page!
+
+Avaiable commands are:
+    help          show this help
+    ls            show web dir content (feel free to download anything)
+    cd &lt;dir&gt;      change to a subdirectory
+    pwd           print current dir
+    whoami        get info about me
+    connect       view me on socials
+</pre>`;
+                else if(args[0] == "ls") {
+                    return '<pre class="leet_text" style="font-size:20px;">' + httpGet('ls.php?dir=.' + dir) + '</pre>';
+                }
+                else if(args[0] == "cd") {
+                    if(args.length < 2)
+                        return '<pre class="leet_text" style="font-size:20px;">cd: usage: cd &lt;directory&gt;</pre>';
+                    else {
+                        var target = args[1];
+                        if(target[target.length -1] != "/")
+                            target += "/";
+                        var ret;
+                        if(target[0] == "/") {
+                            ret = httpGet('isdir.php?path=.' + target);
+                            if(ret.trim() == "1") {
+                                dir = target;
+                                return "";
+                            }
+                        }
+                        else {
+                            ret = httpGet('isdir.php?path=.' + dir + target);
+                            if(ret.trim() == "1") {
+                                dir = dir + target;
+                                return "";
+                            }
+                        }
+                        return '<pre class="leet_text" style="font-size:20px;">cd: error: directory ' + $("<p/>").text(args[1]).html() + ' not found</pre>';
+                    }
+                }
+                else if(args[0] == "pwd") {
+                    return '<pre class="leet_text" style="font-size:20px;">' + dir + '</pre>';
+                }
+                else if(args[0] == "whoami") {
+                    return `<img class='propic' src='propic.jpg'><pre class="leet_text" style="font-size:20px;">I'm a computer engineering student at the Sapienza university of Rome.
+I have been interested in software development since I was thirteen.
+I studied from self-taught the development of programming languages
+but now I'm in the cybersecurity world due to my partecipation at
+<a href="http://cyberchallenge.it/index.php/it/index.html">CyberChallenge.IT</a> and also I'm in a CTF team.
+My interests in cybersecurity are reverse engineering and pwn.
+I'm also a trumpet player, an homebrewer and a Dragon Ball fanboy.</pre>`;
+                }
+                else if(args[0] == "connect") {
+                    return `<div class="connect_div">
+    <a href="https://www.facebook.com/baldi96" class="social_button">
+        <img src="fb.png" style="width: 50px; height: 50px;">
+    </a>
+    <a href="https://github.com/andreafioraldi" class="social_button">
+        <img src="git.png" style="width: 50px; height: 50px;">
+    </a>
+    <a href="https://www.linkedin.com/in/andrea-fioraldi/" class="social_button">
+        <img src="in.png" style="width: 50px; height: 50px;">
+    </a>
+    <a href="https://twitter.com/andreafioraldi" class="social_button">
+        <img src="tw.png" style="width: 50px; height: 50px;">
+    </a>
+</div>`;
+                }
+                else if(cmd.replace(/[a-zA-Z]/g, function(c){return String.fromCharCode((c <= "Z" ? 90 : 122) >= (c = c.charCodeAt(0) + 13) ? c : c - 26);}) == 'Z4z4, 1a gu1f f173 gu3e3 1f 4 fz477 pu4773at3!') {
+                    return '<pre class="leet_text" style="font-size:20px;">Ohhhhhh yea, HACK THE WORLD</pre>';
+                }
+                else return '<pre class="leet_text" style="font-size:20px;">' + $("<p/>").text(cmd).html() + ": command not found</pre>";
+            }
+            $(document).ready(function() {
+                $('#cmd_box').keypress(function(e) {
+                    var code = e.keyCode || e.which;
+                    if(code == 13) { //enter
+                        var cmd = $('#cmd_box').val();
+                        $('#cmd_box').val('');
+                        $('<div class="leet_text" style="font-size:20px;"><font style="color: #FF0000">$</font> ' + $("<p/>").text(cmd).html() + '</div>').insertBefore("#input_div");
+                        cmd = cmd.trim();
+                        if(cmd != "") {
+                            $(processCmd(cmd)).insertBefore("#input_div");
+                            shell_history.push(cmd);
+                            shell_history_idx = shell_history.length -1;
+                        }
+                        window.scrollTo(0, document.body.scrollHeight);
+                    }
+                    else if(code == 38) { //up arrow
+                        if(shell_history.length > 0 && shell_history_idx >= 0) {
+                            $('#cmd_box').val(shell_history[shell_history_idx--]);
+                        }
+                    }
+                    else if(code == 40) { //down arrow
+                        if(shell_history.length > 0 && shell_history_idx < shell_history.length) {
+                            if(shell_history.length == shell_history.length -1)
+                                $('#cmd_box').val('');
+                            else
+                                $('#cmd_box').val(shell_history[++shell_history_idx]);
+                        }
+                    }
+                });
+            });
+        </script>
+        <style>
+            @import url('https://fonts.googleapis.com/css?family=VT323');
+
+            body {
+                background: #101010;
+                text-align: center;
+                overflow-y: auto;
+            }
+
+            .leet_text {
+                font-family: 'VT323', monospace;
+                color: #20c20e;
+            }
+
+            #terminal {
+                width: 500px;
+                text-align: left;
+                margin:0 auto;
+            }
+
+            .input_cmd {
+                border: none;
+                outline: none;
+                background: #101010;
+                font-family: 'VT323', monospace;
+                color: #20c20e;
+                font-size: 20px;
+                width: 480px;
+            }
+
+            .propic {
+                display: block;
+                margin: 0 auto;
+                height: 250px;
+                width: 250px;
+                border-radius: 50%;
+            }
+
+            .connect_div {
+                width: 100%;
+                height: 80px;
+                border: none;
+                outline: none;
+                display: flex;
+                justify-content: center;
+            }
+
+            .social_button {
+                display: inline-block;
+                padding: 8px;
+                border-radius: 50%;
+                -webkit-transition-duration: 0.4s;
+                transition-duration: 0.4s;
+            }
+
+            .social_button:hover {
+                opacity: 0.7;
+            }
+        </style>
+    </head>
+    <body>
+        <pre class="leet_text">
+ $$$$$$\                  $$\                                     $$$$$$$$\ $$\                              $$\       $$\ $$\
+$$  __$$\                 $$ |                                    $$  _____|\__|                             $$ |      $$ |\__|
+$$ /  $$ |$$$$$$$\   $$$$$$$ | $$$$$$\   $$$$$$\   $$$$$$\        $$ |      $$\  $$$$$$\   $$$$$$\  $$$$$$\  $$ | $$$$$$$ |$$\
+$$$$$$$$ |$$  __$$\ $$  __$$ |$$  __$$\ $$  __$$\  \____$$\       $$$$$\    $$ |$$  __$$\ $$  __$$\ \____$$\ $$ |$$  __$$ |$$ |
+$$  __$$ |$$ |  $$ |$$ /  $$ |$$ |  \__|$$$$$$$$ | $$$$$$$ |      $$  __|   $$ |$$ /  $$ |$$ |  \__|$$$$$$$ |$$ |$$ /  $$ |$$ |
+$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |      $$   ____|$$  __$$ |      $$ |      $$ |$$ |  $$ |$$ |     $$  __$$ |$$ |$$ |  $$ |$$ |
+$$ |  $$ |$$ |  $$ |\$$$$$$$ |$$ |      \$$$$$$$\ \$$$$$$$ |      $$ |      $$ |\$$$$$$  |$$ |     \$$$$$$$ |$$ |\$$$$$$$ |$$ |
+\__|  \__|\__|  \__| \_______|\__|       \_______| \_______|      \__|      \__| \______/ \__|      \_______|\__| \_______|\__|
+        </pre>
+        <pre class="leet_text" style="font-size:24px">Enter a command or type "help" for help</pre>
+        <div id="terminal">
+            <div id="input_div" class="leet_text" style="font-size:20px; color: #FF0000">$ <input class="input_cmd" id="cmd_box" type="text"></div>
+        </div>
+    </body>
+</html>
